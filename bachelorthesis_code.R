@@ -35,7 +35,7 @@ extrafont::loadfonts(device="win")
 list.functions.in.file("Final_Bachelorscript.R", alphabetic = TRUE)
 
 
-# Set working directory.
+# Set working directory (the SHP and worldbank data should be in this folder).
 wd <- "C:/Users/Simon/OneDrive/Uni Bern/Bachelorarbeit/Data"
 setwd(wd)
 
@@ -303,10 +303,10 @@ data <- data %>%
     kid_7_9 = h_you_kid %in% c(7:9),
     kid_10_12 = h_you_kid %in% c(10:12),
     kid_13_17 = h_you_kid %in% c(13:17),
-    kid_max_12 = h_you_kid %in% c(0:12),
+    kid_max_12 = h_you_kid %in% c(0:11),
     basic_edu = isced %in% c(0:1),
     upper_and_post_secondary_edu = isced %in% c(2:5),
-    tertiary_edu = isced == 6
+    tertiary_edu = isced %in% c(6)
   )
 
 data$basic_edu <- set_label(data$basic_edu, label = "Highest level of education: basic education")
@@ -504,26 +504,26 @@ ggsave("gg_adjusted_wage_by_year.png",gg_adjusted_wage_by_year,dpi = dpi_n, widt
 
 # Mean contractual working hours by year.
 
-# mean_conWH_by_year <- data %>%
-#   group_by(year) %>%
-#   summarise(mean(actualHW),mean(conWH))
-# 
-# gg_conWH_actualHW_by_year <- ggplot(data= reshape2::melt(mean_conWH_by_year, id = c("year")), aes(x = year, y = value,fill = variable))+
-#   geom_col(position = "dodge") +
-#   labs(title = "Mean contractual and actual working hours by year", x = "Year", y = "Working hours") +
-#   coord_cartesian(xlim = c(2002,2019), ylim = c(30,40)) +
-#   scale_fill_discrete(name ="",labels = c("Actual hours worked","Contractual working hours"))+
-#   theme(text = element_text(family = "CMU Serif"),
-#         axis.title = element_text(size=18),
-#         axis.text = element_text(size=18),         
-#         plot.title = element_text(size = 20, hjust = 0.5),
-#         axis.title.x = element_text(margin = margin(t = 10)),
-#         axis.title.y = element_text(margin = margin(r = 10)),
-#         legend.text =  element_text(size=18),
-#         legend.position  = c(.23,.9),
-#         legend.background = element_rect(fill = "transparent"))
-# 
-# ggsave("gg_conWH_actualHW_by_year.png",gg_conWH_actualHW_by_year,dpi = dpi_n, width = 8, height = 5)
+mean_conWH_by_year <- data %>%
+  group_by(year) %>%
+  summarise(mean(actualHW),mean(conWH))
+
+gg_conWH_actualHW_by_year <- ggplot(data= reshape2::melt(mean_conWH_by_year, id = c("year")), aes(x = year, y = value,fill = variable))+
+  geom_col(position = "dodge") +
+  labs(title = "Mean contractual and actual working hours by year", x = "Year", y = "Working hours") +
+  coord_cartesian(xlim = c(2002,2019), ylim = c(30,40)) +
+  scale_fill_discrete(name ="",labels = c("Actual hours worked","Contractual working hours"))+
+  theme(text = element_text(family = "CMU Serif"),
+        axis.title = element_text(size=18),
+        axis.text = element_text(size=18),
+        plot.title = element_text(size = 20, hjust = 0.5),
+        axis.title.x = element_text(margin = margin(t = 10)),
+        axis.title.y = element_text(margin = margin(r = 10)),
+        legend.text =  element_text(size=18),
+        legend.position  = c(.25,.9),
+        legend.background = element_rect(fill = "transparent"))
+
+ggsave("gg_conWH_actualHW_by_year.png",gg_conWH_actualHW_by_year,dpi = dpi_n, width = 8, height = 5)
 
 
 # gg_cpi_by_year <- ggplot(data= data.frame(cpi_adjust,mean_wage_by_year$year), aes(x = mean_wage_by_year.year, y = cpi_adjust))+
@@ -598,13 +598,13 @@ ggsave("gg_mean_wfh_by_year.png",gg_mean_wfh_by_year,dpi = dpi_n, width = 8, hei
 frame_annual_mean_female <- data.frame(
   Year = rep(annual_mean_female$year,3),
   Mean_Values = c(annual_mean_female$mean_value,annual_mean_female_no_kids$mean_value,annual_mean_female_kids$mean_value),
-  Group = c(rep("Female",length(unique(data$year))),rep("Female (no children under 12)",length(unique(data$year))),rep("Female (children under 12)",length(unique(data$year))))
+  Group = c(rep("Female",length(unique(data$year))),rep("Female (no child younger than 13)",length(unique(data$year))),rep("Female (child younger than 13)",length(unique(data$year))))
 )
 
 frame_annual_mean_male <- data.frame(
   Year = rep(annual_mean_male$year,3),
   Mean_Values = c(annual_mean_male$mean_value,annual_mean_male_no_kids$mean_value,annual_mean_male_kids$mean_value),
-  Group = c(rep("Male",18),rep("Male (no children under 12)",18),rep("Male (children under 12)",18))
+  Group = c(rep("Male",18),rep("Male (no younger than 13)",18),rep("Male (child younger than 13)",18))
 )
 
 # Generate plot for mean share WfH by year for women.
@@ -770,7 +770,7 @@ ggsave("wage_plot.png",wage_plot, dpi = dpi_n, width= 8, height = 5)
 
 # Add a few constructed variables such as a copy of year and experience squared.
 data$experience_sq <- data$experience^2
-
+data$age_sq <- data$age^2
 data$c_year <- data$year
 
 
@@ -874,8 +874,7 @@ stargazer(fe_model_wages_female,fe_model_wages_male,ols_model_wages_female,ols_m
           align=TRUE, type="latex", out="table_wages.tex", covariate.labels = label_wages, 
           column.labels = c("FE Female","FE Male","OLS Female","OLS Male"),colnames = FALSE, dep.var.labels = "Log(Full-time equivalent salary)",model.names = FALSE,
           dep.var.caption = "", omit.stat = c("f","ser"), notes.label = "", model.numbers =FALSE, float = FALSE,
-          keep = c("WfH"), add.lines = list(c("Controls","\\multicolumn{1}{c}{Yes}","\\multicolumn{1}{c}{Yes}","\\multicolumn{1}{c}{Yes}","\\multicolumn{1}{c}{Yes}"),
-                                            c("No. of individuals", paste0("\\multicolumn{1}{c}{",length(unique(female_data$id)),"}"), 
+          keep = c("WfH"), add.lines = list(c("No. of individuals", paste0("\\multicolumn{1}{c}{",length(unique(female_data$id)),"}"), 
                                               paste0("\\multicolumn{1}{c}{",length(unique(male_data$id)),"}"),paste0("\\multicolumn{1}{c}{",length(unique(female_data$id)),"}"),
                                               paste0("\\multicolumn{1}{c}{",length(unique(male_data$id)),"}"))))
 
@@ -915,30 +914,29 @@ stargazer(fe_model_wages_female,fe_model_wages_male,ols_model_wages_female,ols_m
           align=TRUE, type="latex", out="table_wages_long.tex", covariate.labels = label_wages, 
           column.labels = c("FE Female","FE Male","OLS Female","OLS Male"),colnames = FALSE, dep.var.labels = "Log(Full-time equivalent salary)",model.names = FALSE,
           dep.var.caption = "", omit.stat = c("f","ser"), notes.label = "", model.numbers =FALSE, float = FALSE,
-          omit = c("c_year"), add.lines = list(c("Controls","\\multicolumn{1}{c}{Yes}","\\multicolumn{1}{c}{Yes}","\\multicolumn{1}{c}{Yes}","\\multicolumn{1}{c}{Yes}"),
-                                               c("No. of individuals", paste0("\\multicolumn{1}{c}{",length(unique(female_data$id)),"}"), 
+          omit = c("c_year"), add.lines = list(c("No. of individuals", paste0("\\multicolumn{1}{c}{",length(unique(female_data$id)),"}"), 
                                                  paste0("\\multicolumn{1}{c}{",length(unique(male_data$id)),"}"),paste0("\\multicolumn{1}{c}{",length(unique(female_data$id)),"}"),
                                                  paste0("\\multicolumn{1}{c}{",length(unique(male_data$id)),"}"))))
 
 
 
 # Fixed effects model for actual working hours for women.
-fe_model_actualHW_female <- plm(actualHW ~ factor(WfH)+ age + edu_year +hourly_wage+n_kids+factor(kid_max_12)+factor(public_private) +factor(civstat) + factor(superv) +
+fe_model_actualHW_female <- plm(actualHW ~ factor(WfH)+ age +age_sq+ edu_year +hourly_wage+n_kids+factor(kid_max_12)+factor(public_private) +factor(civstat) + factor(superv) +
                                   factor(n_employees)+ conWH, 
                                 data = female_pdata, model = "within", index = c("id"), effect = "individual")
 
 # Fixed effects model for actual working hours for men.
-fe_model_actualHW_male <- plm(actualHW ~ factor(WfH)+ age + edu_year +hourly_wage+n_kids+factor(kid_max_12)+factor(public_private) +factor(civstat) + factor(superv)  +
+fe_model_actualHW_male <- plm(actualHW ~ factor(WfH)+ age +age_sq+ edu_year +hourly_wage+n_kids+factor(kid_max_12)+factor(public_private) +factor(civstat) + factor(superv)  +
                                 factor(n_employees)+ conWH
                               , data = male_pdata, model = "within", index = c("id"), effect = "individual")
 
 # Pooled OLS model for actual working hours for women.
-ols_model_actualHW_female <- plm(actualHW ~ factor(WfH)+ age + edu_year +hourly_wage+n_kids+factor(kid_max_12)+factor(public_private) +factor(civstat) + factor(superv)  +
+ols_model_actualHW_female <- plm(actualHW ~ factor(WfH)+ age + age_sq + edu_year +hourly_wage+n_kids+factor(kid_max_12)+factor(public_private) +factor(civstat) + factor(superv)  +
                                    factor(n_employees)+ 
                                    conWH, data = female_pdata, model = "pooling")
 
 # Pooled OLS model for actual working hours for men.
-ols_model_actualHW_male <- plm(actualHW ~ factor(WfH)+ age + edu_year +hourly_wage+n_kids+factor(kid_max_12)+factor(public_private) +factor(civstat) + factor(superv) +
+ols_model_actualHW_male <- plm(actualHW ~ factor(WfH)+ age + age_sq + edu_year +hourly_wage+n_kids+factor(kid_max_12)+factor(public_private) +factor(civstat) + factor(superv) +
                                  factor(n_employees)+ conWH, data = male_pdata, model = "pooling")
 
 # Extract robust standard errors using the function above.
@@ -956,16 +954,15 @@ stargazer(fe_model_actualHW_female,fe_model_actualHW_male,ols_model_actualHW_fem
           align=TRUE, type="latex", out="table_actualHW.tex", covariate.labels = label_actualHW, 
           column.labels = c("FE Female","FE Male","OLS Female","OLS Male"),colnames = FALSE, dep.var.labels = "Actual hours worked",model.names = FALSE,
           dep.var.caption = "", omit.stat = c("f","ser"), notes.label = "", model.numbers =FALSE, float = FALSE,
-          keep = c("WfH"), add.lines = list(c("Controls","\\multicolumn{1}{c}{Yes}","\\multicolumn{1}{c}{Yes}","\\multicolumn{1}{c}{Yes}","\\multicolumn{1}{c}{Yes}"),
-                                            c("No. of individuals", paste0("\\multicolumn{1}{c}{",length(unique(female_data$id)),"}"), 
+          keep = c("WfH"), add.lines = list(c("No. of individuals", paste0("\\multicolumn{1}{c}{",length(unique(female_data$id)),"}"), 
                                               paste0("\\multicolumn{1}{c}{",length(unique(male_data$id)),"}"),paste0("\\multicolumn{1}{c}{",length(unique(female_data$id)),"}"),
                                               paste0("\\multicolumn{1}{c}{",length(unique(male_data$id)),"}"))))
 
 
 
 
-label_actualHW <-  c("WfH","Age","Years of education","Hourly wage","N° of children",
-                     "Child under 12","Public sector","Married","Supervisory role","N° of employees: 20-99",
+label_actualHW <-  c("WfH","Age","Age squared","Years of education","Hourly wage","N° of children",
+                     "Child aged 12 or younger","Public sector","Married","Supervisory role","N° of employees: 20-99",
                      "N° of employees: 100-499","N° of employees: 500+","Contractual working hours")
 
 # Save the model using stargazer (long version).
@@ -974,8 +971,66 @@ stargazer(fe_model_actualHW_female,fe_model_actualHW_male,ols_model_actualHW_fem
           align=TRUE, type="latex", out="table_actualHW_long.tex", covariate.labels = label_actualHW, 
           column.labels = c("FE Female","FE Male","OLS Female","OLS Male"),colnames = FALSE, dep.var.labels = "Actual hours worked",model.names = NULL,
           dep.var.caption = "", omit.stat = c("f","ser"), notes.label = "", model.numbers =FALSE, float = FALSE,
-          omit = ("xyz"),add.lines = list(c("Controls","\\multicolumn{1}{c}{Yes}","\\multicolumn{1}{c}{Yes}","\\multicolumn{1}{c}{Yes}","\\multicolumn{1}{c}{Yes}"),
-                                          c("No. of individuals", paste0("\\multicolumn{1}{c}{",length(unique(female_data$id)),"}"), 
+          omit = ("xyz"),add.lines = list(c("No. of individuals", paste0("\\multicolumn{1}{c}{",length(unique(female_data$id)),"}"), 
+                                            paste0("\\multicolumn{1}{c}{",length(unique(male_data$id)),"}"),paste0("\\multicolumn{1}{c}{",length(unique(female_data$id)),"}"),
+                                            paste0("\\multicolumn{1}{c}{",length(unique(male_data$id)),"}"))))
+
+
+# Fixed effects model for contractual working hours for women.
+fe_model_conWH_female <- plm(conWH ~ factor(WfH)+ age + age_sq+edu_year +hourly_wage+n_kids+factor(kid_max_12)+factor(public_private) +factor(civstat) + factor(superv) +
+                               factor(n_employees)+ actualHW, 
+                             data = female_pdata, model = "within", index = c("id"), effect = "individual")
+
+# Fixed effects model for contractual working hours for men.
+fe_model_conWH_male <- plm(conWH ~ factor(WfH)+ age +age_sq+ edu_year +hourly_wage+n_kids+factor(kid_max_12)+factor(public_private) +factor(civstat) + factor(superv)  +
+                             factor(n_employees)+ actualHW
+                           , data = male_pdata, model = "within", index = c("id"), effect = "individual")
+
+# Pooled OLS model for contractual working hours for women.
+ols_model_conWH_female <- plm(conWH ~ factor(WfH)+ age +age_sq+ edu_year +hourly_wage+n_kids+factor(kid_max_12)+factor(public_private) +factor(civstat) + factor(superv)  +
+                                factor(n_employees)+ 
+                                actualHW, data = female_pdata, model = "pooling")
+
+# Pooled OLS model for contractual working hours for men.
+ols_model_conWH_male <- plm(conWH ~ factor(WfH)+ age + age_sq + edu_year +hourly_wage+n_kids+factor(kid_max_12)+factor(public_private) +factor(civstat) + factor(superv) +
+                              factor(n_employees)+ actualHW, data = male_pdata, model = "pooling")
+
+
+# Extract robust standard errors using the function above.
+label_conWH <-  c("WfH")
+fe_model_conWH_female_rb <-  data.frame(rb_se(fe_model_conWH_female,4))
+fe_model_conWH_male_rb <-  data.frame(rb_se(fe_model_conWH_male,4))
+ols_model_conWH_female_rb <-  data.frame(rb_se(ols_model_conWH_female,4))
+ols_model_conWH_male_rb <-  data.frame(rb_se(ols_model_conWH_male,4))
+
+
+robust_se_conWH <- list(as.numeric(fe_model_conWH_female_rb$Std..Error),as.numeric(fe_model_conWH_male_rb$Std..Error), as.numeric(ols_model_conWH_female_rb$Std..Error),as.numeric(ols_model_conWH_male_rb$Std..Error))
+p_value_conWH <- list(as.numeric(fe_model_conWH_female_rb$Pr...t..),as.numeric(fe_model_conWH_male_rb$Pr...t..),as.numeric(ols_model_conWH_female_rb$Pr...t..),as.numeric(ols_model_conWH_male_rb$Pr...t..))
+
+# Save the model using stargazer (short version).
+stargazer(fe_model_conWH_female,fe_model_conWH_male,ols_model_conWH_female,ols_model_conWH_male,
+          se = robust_se_conWH, p = p_value_conWH,
+          align=TRUE, type="latex", out="table_conWH.tex", covariate.labels = label_conWH, 
+          column.labels = c("FE Female","FE Male","OLS Female","OLS Male"),colnames = FALSE, dep.var.labels = "Contractual working hours",model.names = FALSE,
+          dep.var.caption = "", omit.stat = c("f","ser"), notes.label = "", model.numbers =FALSE, float = FALSE,
+          keep = c("WfH"), add.lines = list(c("No. of individuals", paste0("\\multicolumn{1}{c}{",length(unique(female_data$id)),"}"), 
+                                              paste0("\\multicolumn{1}{c}{",length(unique(male_data$id)),"}"),paste0("\\multicolumn{1}{c}{",length(unique(female_data$id)),"}"),
+                                              paste0("\\multicolumn{1}{c}{",length(unique(male_data$id)),"}"))))
+
+
+
+
+label_conWH <-  c("WfH","Age","Age squared","Years of education","Hourly wage","N° of children",
+                  "Child aged 12 or younger","Public sector","Married","Supervisory role","N° of employees: 20-99",
+                  "N° of employees: 100-499","N° of employees: 500+","Actual working hours")
+
+# Save the model using stargazer (long version).
+stargazer(fe_model_conWH_female,fe_model_conWH_male,ols_model_conWH_female,ols_model_conWH_male,
+          se = robust_se_conWH, p = p_value_conWH,
+          align=TRUE, type="latex", out="table_conWH_long.tex", covariate.labels = label_conWH, 
+          column.labels = c("FE Female","FE Male","OLS Female","OLS Male"),colnames = FALSE, dep.var.labels = "Contractual working hours",model.names = NULL,
+          dep.var.caption = "", omit.stat = c("f","ser"), notes.label = "", model.numbers =FALSE, float = FALSE,
+          omit = ("xyz"),add.lines = list(c("No. of individuals", paste0("\\multicolumn{1}{c}{",length(unique(female_data$id)),"}"), 
                                             paste0("\\multicolumn{1}{c}{",length(unique(male_data$id)),"}"),paste0("\\multicolumn{1}{c}{",length(unique(female_data$id)),"}"),
                                             paste0("\\multicolumn{1}{c}{",length(unique(male_data$id)),"}"))))
 
@@ -1019,13 +1074,12 @@ stargazer(fe_model_cond_sat_female,fe_model_cond_sat_male,ols_model_cond_sat_fem
           align=TRUE, type="latex", out="table_cond_sat.tex", covariate.labels = label_cond_sat, 
           column.labels = c("FE Female","FE Male","OLS Female","OLS Male"),colnames = FALSE, dep.var.labels = c("Satisfaction with work conditions"),model.names = FALSE,
           dep.var.caption = "", omit.stat = c("f","ser"), notes.label = "", model.numbers =FALSE, float = FALSE,
-          keep = c("WfH"), add.lines = list(c("Controls","\\multicolumn{1}{c}{Yes}","\\multicolumn{1}{c}{Yes}","\\multicolumn{1}{c}{Yes}","\\multicolumn{1}{c}{Yes}"),
-                                            c("No. of individuals", paste0("\\multicolumn{1}{c}{",length(unique(female_data$id)),"}"), 
+          keep = c("WfH"), add.lines = list(c("No. of individuals", paste0("\\multicolumn{1}{c}{",length(unique(female_data$id)),"}"), 
                                               paste0("\\multicolumn{1}{c}{",length(unique(male_data$id)),"}"),paste0("\\multicolumn{1}{c}{",length(unique(female_data$id)),"}"),
                                               paste0("\\multicolumn{1}{c}{",length(unique(male_data$id)),"}"))))
 
 
-label_cond_sat <-  c("WfH","Years of education","Contractual working hours","Hourly wage","Child under 12","Minutes of commute","Supvervisory role")
+label_cond_sat <-  c("WfH","Years of education","Contractual working hours","Hourly wage","Child aged 12 or younger","Minutes of commute","Supvervisory role")
 
 # Save the model using stargazer (long version).
 stargazer(fe_model_cond_sat_female,fe_model_cond_sat_male,ols_model_cond_sat_female,ols_model_cond_sat_male,
@@ -1033,8 +1087,7 @@ stargazer(fe_model_cond_sat_female,fe_model_cond_sat_male,ols_model_cond_sat_fem
           align=TRUE, type="latex", out="table_cond_sat_long.tex", covariate.labels = label_cond_sat, 
           column.labels = c("FE Female","FE Male","OLS Female","OLS Male"),colnames = FALSE, dep.var.labels = c("Satisfaction with work condition"),model.names = FALSE,
           dep.var.caption = "", omit.stat = c("f","ser"), notes.label = "", model.numbers =FALSE, float = FALSE,
-          omit = c("xyz"), add.lines = list(c("Controls","\\multicolumn{1}{c}{Yes}","\\multicolumn{1}{c}{Yes}","\\multicolumn{1}{c}{Yes}","\\multicolumn{1}{c}{Yes}"),
-                                            c("No. of individuals", paste0("\\multicolumn{1}{c}{",length(unique(female_data$id)),"}"), 
+          omit = c("xyz"), add.lines = list(c("No. of individuals", paste0("\\multicolumn{1}{c}{",length(unique(female_data$id)),"}"), 
                                               paste0("\\multicolumn{1}{c}{",length(unique(male_data$id)),"}"),paste0("\\multicolumn{1}{c}{",length(unique(female_data$id)),"}"),
                                               paste0("\\multicolumn{1}{c}{",length(unique(male_data$id)),"}"))))
 
@@ -1050,19 +1103,19 @@ fe_logit_model_wfh_female <- feglm(WfH ~ factor(kid_max_12) +n_kids+ superv+ com
 fe_logit_model_wfh_male <- feglm(WfH ~ factor(kid_max_12)+n_kids + superv+ commute_m  + conWH+ actualHW +hourly_wage + age + factor(year) | id, data = male_pdata, family = binomial(link = "logit"))
 
 # Logit model for WfH for women.
-ols_logit_model_wfh_female <- feglm(model_logit, data = female_pdata, family = binomial(link = "logit"))
+pooled_logit_model_wfh_female <- feglm(model_logit, data = female_pdata, family = binomial(link = "logit"))
 
 # Logit model for WfH for men.
-ols_logit_model_wfh_male <- feglm(model_logit, data = male_pdata, family = binomial(link = "logit"))
+pooled_logit_model_wfh_male <- feglm(model_logit, data = male_pdata, family = binomial(link = "logit"))
 
 
 logit_models <- list()
 logit_models[['FE Female']] <- fe_logit_model_wfh_female
 logit_models[['FE Male']] <- fe_logit_model_wfh_male
-logit_models[['Pooled Female']] <- ols_logit_model_wfh_female
-logit_models[['Pooled Male']] <- ols_logit_model_wfh_male
+logit_models[['Pooled Female']] <- pooled_logit_model_wfh_female
+logit_models[['Pooled Male']] <- pooled_logit_model_wfh_male
 
-rename_v <- c("factor(kid_max_12)1" = "Child under 12",
+rename_v <- c("factor(kid_max_12)1" = "Child aged 12 or younger",
               "superv" = "Supvervisory Role",
               "n_kids" = "Number of children",
               "commute_m"="Minutes of commute",
@@ -1079,11 +1132,105 @@ out <- capture.output(modelsummary(logit_models, output = "latex", stars = c('**
 
 start <- grep("^\\\\begin\\{talltblr\\}", out)
 stop <- grep("^\\\\end\\{talltblr\\}", out)
-a <- out[start:stop]
-a[3] ="note{} = {* p $<$ 0.1, ** p $<$ 0.05, *** p $<$ 0.01},"
+out <- out[start:stop]
+out[3] ="note{} = {* p $<$ 0.1, ** p $<$ 0.05, *** p $<$ 0.01},"
 
 lines <- unlist(strsplit(out,"\n"))
 mod_table <- paste(lines, collapse = "\n")
 
 write(mod_table,"logit_table.tex")
+
+
+
+
+fe_model_conWH_female <- plm(conWH ~ factor(WfH)+ age + age_sq+edu_year +hourly_wage+n_kids+factor(kid_max_12)+factor(public_private) +factor(civstat) + factor(superv) +
+                               factor(n_employees)+ actualHW, 
+                             data = female_pdata, model = "within", index = c("id"), effect = "individual")
+
+fe_model_conWH_male <- plm(conWH ~ factor(WfH)+ age +age_sq+ edu_year +hourly_wage+n_kids+factor(kid_max_12)+factor(public_private) +factor(civstat) + factor(superv)  +
+                             factor(n_employees)+ actualHW
+                           , data = male_pdata, model = "within", index = c("id"), effect = "individual")
+
+ols_model_conWH_female <- plm(conWH ~ factor(WfH)+ age +age_sq+ edu_year +hourly_wage+n_kids+factor(kid_max_12)+factor(public_private) +factor(civstat) + factor(superv)  +
+                                factor(n_employees)+ 
+                                actualHW, data = female_pdata, model = "pooling")
+
+ols_model_conWH_male <- plm(conWH ~ factor(WfH)+ age + age_sq + edu_year +hourly_wage+n_kids+factor(kid_max_12)+factor(public_private) +factor(civstat) + factor(superv) +
+                              factor(n_employees)+ actualHW, data = male_pdata, model = "pooling")
+
+
+
+
+
+label_conWH <-  c("WfH")
+fe_model_conWH_female_rb <-  data.frame(rb_se(fe_model_conWH_female,4))
+fe_model_conWH_male_rb <-  data.frame(rb_se(fe_model_conWH_male,4))
+ols_model_conWH_female_rb <-  data.frame(rb_se(ols_model_conWH_female,4))
+ols_model_conWH_male_rb <-  data.frame(rb_se(ols_model_conWH_male,4))
+
+
+robust_se_conWH <- list(as.numeric(fe_model_conWH_female_rb$Std..Error),as.numeric(fe_model_conWH_male_rb$Std..Error), as.numeric(ols_model_conWH_female_rb$Std..Error),as.numeric(ols_model_conWH_male_rb$Std..Error))
+p_value_conWH <- list(as.numeric(fe_model_conWH_female_rb$Pr...t..),as.numeric(fe_model_conWH_male_rb$Pr...t..),as.numeric(ols_model_conWH_female_rb$Pr...t..),as.numeric(ols_model_conWH_male_rb$Pr...t..))
+
+stargazer(fe_model_conWH_female,fe_model_conWH_male,ols_model_conWH_female,ols_model_conWH_male,
+          se = robust_se_conWH, p = p_value_conWH,
+          align=TRUE, type="latex", out="table_conWH.tex", covariate.labels = label_conWH, 
+          column.labels = c("FE Female","FE Male","OLS Female","OLS Male"),colnames = FALSE, dep.var.labels = "Contractual working hours",model.names = FALSE,
+          dep.var.caption = "", omit.stat = c("f","ser"), notes.label = "", model.numbers =FALSE, float = FALSE,
+          keep = c("WfH"), add.lines = list(c("No. of individuals", paste0("\\multicolumn{1}{c}{",length(unique(female_data$id)),"}"), 
+                                              paste0("\\multicolumn{1}{c}{",length(unique(male_data$id)),"}"),paste0("\\multicolumn{1}{c}{",length(unique(female_data$id)),"}"),
+                                              paste0("\\multicolumn{1}{c}{",length(unique(male_data$id)),"}"))))
+
+
+
+
+label_conWH <-  c("WfH","Age","Age squared","Years of education","Hourly wage","N° of children",
+                  "Child aged 12 or younger","Public sector","Married","Supervisory role","N° of employees: 20-99",
+                  "N° of employees: 100-499","N° of employees: 500+","Actual working hours")
+
+stargazer(fe_model_conWH_female,fe_model_conWH_male,ols_model_conWH_female,ols_model_conWH_male,
+          se = robust_se_conWH, p = p_value_conWH,
+          align=TRUE, type="latex", out="table_conWH_long.tex", covariate.labels = label_conWH, 
+          column.labels = c("FE Female","FE Male","OLS Female","OLS Male"),colnames = FALSE, dep.var.labels = "Contractual working hours",model.names = NULL,
+          dep.var.caption = "", omit.stat = c("f","ser"), notes.label = "", model.numbers =FALSE, float = FALSE,
+          omit = ("xyz"),add.lines = list(c("No. of individuals", paste0("\\multicolumn{1}{c}{",length(unique(female_data$id)),"}"), 
+                                            paste0("\\multicolumn{1}{c}{",length(unique(male_data$id)),"}"),paste0("\\multicolumn{1}{c}{",length(unique(female_data$id)),"}"),
+                                            paste0("\\multicolumn{1}{c}{",length(unique(male_data$id)),"}"))))
+
+
+
+
+# Functions to calculate probabilities for the logit model, with the baseline values
+# defined as the rounded means.
+female_averages <- data.frame(
+  age = 45,
+  commute_m = 49,
+  hourly_wage = 44,
+  conWH = 29,
+  actualHW = 31,
+  n_kids = 1,
+  superv = 0,
+  kid_max_12 = 0,
+  year = 2002
+)
+
+logit_pred_female <- predict(pooled_logit_model_wfh_female, female_averages, type = "link")
+prob_pred_female <- predict(pooled_logit_model_wfh_female, female_averages, type = "response")
+
+
+male_averages <- data.frame(
+  age = 46,
+  commute_m = 53,
+  hourly_wage = 53,
+  conWH = 40,
+  actualHW = 43,
+  n_kids = 2,
+  superv = 0,
+  kid_max_12 = 0,
+  year = 2002
+)
+
+logit_pred_male <- predict(pooled_logit_model_wfh_male, male_averages, type = "link")
+prob_pred_male <- predict(pooled_logit_model_wfh_male, male_averages, type = "response")
+
 
