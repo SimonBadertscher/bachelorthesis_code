@@ -23,16 +23,12 @@ library(nlme)
 library(fixest)
 library(scales)
 library(modelsummary)
-library(NCmisc)
 
 
 ### Data preparation
 
 # Load fonts (especially "CMU Serif") for the plot description.
 extrafont::loadfonts(device="win")
-
-
-list.functions.in.file("Final_Bachelorscript.R", alphabetic = TRUE)
 
 
 # Set working directory (the SHP and worldbank data should be in this folder).
