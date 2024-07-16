@@ -594,13 +594,13 @@ ggsave("gg_mean_wfh_by_year.png",gg_mean_wfh_by_year,dpi = dpi_n, width = 8, hei
 frame_annual_mean_female <- data.frame(
   Year = rep(annual_mean_female$year,3),
   Mean_Values = c(annual_mean_female$mean_value,annual_mean_female_no_kids$mean_value,annual_mean_female_kids$mean_value),
-  Group = c(rep("Female",length(unique(data$year))),rep("Female (no child younger than 13)",length(unique(data$year))),rep("Female (child younger than 13)",length(unique(data$year))))
+  Group = c(rep("Female",length(unique(data$year))),rep("Female (no child under 13)",length(unique(data$year))),rep("Female (child under 13)",length(unique(data$year))))
 )
 
 frame_annual_mean_male <- data.frame(
   Year = rep(annual_mean_male$year,3),
   Mean_Values = c(annual_mean_male$mean_value,annual_mean_male_no_kids$mean_value,annual_mean_male_kids$mean_value),
-  Group = c(rep("Male",18),rep("Male (no younger than 13)",18),rep("Male (child younger than 13)",18))
+  Group = c(rep("Male",18),rep("Male (no child under 13)",18),rep("Male (child under 13)",18))
 )
 
 # Generate plot for mean share WfH by year for women.
@@ -1170,5 +1170,3 @@ male_averages <- data.frame(
 
 logit_pred_male <- predict(pooled_logit_model_wfh_male, male_averages, type = "link")
 prob_pred_male <- predict(pooled_logit_model_wfh_male, male_averages, type = "response")
-
-
