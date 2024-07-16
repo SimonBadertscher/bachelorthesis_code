@@ -1138,64 +1138,6 @@ write(mod_table,"logit_table.tex")
 
 
 
-
-fe_model_conWH_female <- plm(conWH ~ factor(WfH)+ age + age_sq+edu_year +hourly_wage+n_kids+factor(kid_max_12)+factor(public_private) +factor(civstat) + factor(superv) +
-                               factor(n_employees)+ actualHW, 
-                             data = female_pdata, model = "within", index = c("id"), effect = "individual")
-
-fe_model_conWH_male <- plm(conWH ~ factor(WfH)+ age +age_sq+ edu_year +hourly_wage+n_kids+factor(kid_max_12)+factor(public_private) +factor(civstat) + factor(superv)  +
-                             factor(n_employees)+ actualHW
-                           , data = male_pdata, model = "within", index = c("id"), effect = "individual")
-
-ols_model_conWH_female <- plm(conWH ~ factor(WfH)+ age +age_sq+ edu_year +hourly_wage+n_kids+factor(kid_max_12)+factor(public_private) +factor(civstat) + factor(superv)  +
-                                factor(n_employees)+ 
-                                actualHW, data = female_pdata, model = "pooling")
-
-ols_model_conWH_male <- plm(conWH ~ factor(WfH)+ age + age_sq + edu_year +hourly_wage+n_kids+factor(kid_max_12)+factor(public_private) +factor(civstat) + factor(superv) +
-                              factor(n_employees)+ actualHW, data = male_pdata, model = "pooling")
-
-
-
-
-
-label_conWH <-  c("WfH")
-fe_model_conWH_female_rb <-  data.frame(rb_se(fe_model_conWH_female,4))
-fe_model_conWH_male_rb <-  data.frame(rb_se(fe_model_conWH_male,4))
-ols_model_conWH_female_rb <-  data.frame(rb_se(ols_model_conWH_female,4))
-ols_model_conWH_male_rb <-  data.frame(rb_se(ols_model_conWH_male,4))
-
-
-robust_se_conWH <- list(as.numeric(fe_model_conWH_female_rb$Std..Error),as.numeric(fe_model_conWH_male_rb$Std..Error), as.numeric(ols_model_conWH_female_rb$Std..Error),as.numeric(ols_model_conWH_male_rb$Std..Error))
-p_value_conWH <- list(as.numeric(fe_model_conWH_female_rb$Pr...t..),as.numeric(fe_model_conWH_male_rb$Pr...t..),as.numeric(ols_model_conWH_female_rb$Pr...t..),as.numeric(ols_model_conWH_male_rb$Pr...t..))
-
-stargazer(fe_model_conWH_female,fe_model_conWH_male,ols_model_conWH_female,ols_model_conWH_male,
-          se = robust_se_conWH, p = p_value_conWH,
-          align=TRUE, type="latex", out="table_conWH.tex", covariate.labels = label_conWH, 
-          column.labels = c("FE Female","FE Male","OLS Female","OLS Male"),colnames = FALSE, dep.var.labels = "Contractual working hours",model.names = FALSE,
-          dep.var.caption = "", omit.stat = c("f","ser"), notes.label = "", model.numbers =FALSE, float = FALSE,
-          keep = c("WfH"), add.lines = list(c("No. of individuals", paste0("\\multicolumn{1}{c}{",length(unique(female_data$id)),"}"), 
-                                              paste0("\\multicolumn{1}{c}{",length(unique(male_data$id)),"}"),paste0("\\multicolumn{1}{c}{",length(unique(female_data$id)),"}"),
-                                              paste0("\\multicolumn{1}{c}{",length(unique(male_data$id)),"}"))))
-
-
-
-
-label_conWH <-  c("WfH","Age","Age squared","Years of education","Hourly wage","N° of children",
-                  "Child aged 12 or younger","Public sector","Married","Supervisory role","N° of employees: 20-99",
-                  "N° of employees: 100-499","N° of employees: 500+","Actual working hours")
-
-stargazer(fe_model_conWH_female,fe_model_conWH_male,ols_model_conWH_female,ols_model_conWH_male,
-          se = robust_se_conWH, p = p_value_conWH,
-          align=TRUE, type="latex", out="table_conWH_long.tex", covariate.labels = label_conWH, 
-          column.labels = c("FE Female","FE Male","OLS Female","OLS Male"),colnames = FALSE, dep.var.labels = "Contractual working hours",model.names = NULL,
-          dep.var.caption = "", omit.stat = c("f","ser"), notes.label = "", model.numbers =FALSE, float = FALSE,
-          omit = ("xyz"),add.lines = list(c("No. of individuals", paste0("\\multicolumn{1}{c}{",length(unique(female_data$id)),"}"), 
-                                            paste0("\\multicolumn{1}{c}{",length(unique(male_data$id)),"}"),paste0("\\multicolumn{1}{c}{",length(unique(female_data$id)),"}"),
-                                            paste0("\\multicolumn{1}{c}{",length(unique(male_data$id)),"}"))))
-
-
-
-
 # Functions to calculate probabilities for the logit model, with the baseline values
 # defined as the rounded means.
 female_averages <- data.frame(
