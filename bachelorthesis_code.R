@@ -335,7 +335,7 @@ write_dta(data,"data.dta")
 ### Descriptive analysis
 
 # Set dpi_n for ggsave (quality).
-dpi_n <- 1000
+dpi_n <- 800
 
 # Only necessary if not run consecutively.
 data <- read_dta("data.dta") 
@@ -607,7 +607,7 @@ frame_annual_mean_male <- data.frame(
 gg_line_female <- ggplot(frame_annual_mean_female, aes(x=Year, y=Mean_Values, color = Group)) +
   geom_line() +
   theme_minimal() +
-  labs(y = "Mean share WfH",title = "Mean share WfH by year for women")+
+  labs(y = "Share WfH",title = "Mean share WfH by year for women")+
   theme(text = element_text(family = "CMU Serif"),
         plot.title = element_text(size=20,hjust = 0.5),
         axis.title = element_text(size=18),        
@@ -625,7 +625,7 @@ ggsave("gg_line_female.png",gg_line_female, dpi= dpi_n, width = 8, height = 5)
 gg_line_male <- ggplot(frame_annual_mean_male, aes(x=Year, y=Mean_Values, color = Group)) +
   geom_line() +
   theme_minimal() +
-  labs(y = "Mean share WfH",title = "Mean share WfH by year for men")+
+  labs(y = "Share WfH",title = "Mean share WfH by year for men")+
   theme(text = element_text(family = "CMU Serif"),
         plot.title = element_text(size=20,hjust = 0.5),
         axis.title = element_text(size=18),        
@@ -1170,3 +1170,5 @@ male_averages <- data.frame(
 
 logit_pred_male <- predict(pooled_logit_model_wfh_male, male_averages, type = "link")
 prob_pred_male <- predict(pooled_logit_model_wfh_male, male_averages, type = "response")
+
+
