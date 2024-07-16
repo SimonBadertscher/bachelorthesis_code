@@ -32,7 +32,7 @@ extrafont::loadfonts(device="win")
 
 
 # Set working directory (the SHP and worldbank data should be in this folder).
-wd <- "C:/Users/Simon/OneDrive/Uni Bern/Bachelorarbeit/Data"
+wd <- "YOUR_PATH"
 setwd(wd)
 
 
