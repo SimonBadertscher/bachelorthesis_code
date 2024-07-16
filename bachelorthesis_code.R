@@ -302,14 +302,14 @@ data <- data %>%
     kid_max_12 = h_you_kid %in% c(0:11),
     basic_edu = isced %in% c(0:1),
     upper_and_post_secondary_edu = isced %in% c(2:5),
-    tertiary_edu = isced %in% c(6)
+    tertiary_edu = isced == c(6)
   )
 
 data$basic_edu <- set_label(data$basic_edu, label = "Highest level of education: basic education")
 attr(data[["basic_edu"]], "labels") <- c("No" = FALSE, "Yes" = TRUE)
 data$upper_and_post_secondary_edu <- set_label(data$upper_and_post_secondary_edu, label = "Highest level of education: secondary education")
 attr(data[["upper_and_post_secondary_edu"]], "labels") <- c("No" = FALSE, "Yes" = TRUE)
-data$tertiary_edu <- set_label(data$upper_and_post_secondary_edu, label = "Highest level of education: tertiary education")
+data$tertiary_edu <- set_label(data$tertiary_edu, label = "Highest level of education: tertiary education")
 attr(data[["tertiary_edu"]], "labels") <- c("No" = FALSE, "Yes" = TRUE)
 
 data$kid_u_3 <- set_label(data$kid_u_3, label = "Youngest child under 3")
